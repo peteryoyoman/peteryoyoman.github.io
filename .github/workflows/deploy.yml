@@ -20,11 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Build with Astro
         uses: withastro/action@v3
-        # path: .          # 若專案不在 repo 根目錄再取消註解
-        # node-version: 22 # 需指定 Node 版本時取消註解
+        with:
+          node-version: 22
 
   deploy:
     needs: build
