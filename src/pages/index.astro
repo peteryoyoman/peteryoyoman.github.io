@@ -1,49 +1,749 @@
 ---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { SITE_TITLE } from '../consts';
+import heroImg from '../assets/hero.jpg';
+import portraitImg from '../assets/portrait.jpg';
+
+const byPub = (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+
+const allBooks = (await getCollection('books')).sort(byPub);
+const allAlbums = (await getCollection('travel')).sort(byPub);
+const allEpisodes = (await getCollection('podcast')).sort(byPub);
+const allRaces = (await getCollection('races')).sort(
+	(a, b) => b.data.raceDate.valueOf() - a.data.raceDate.valueOf(),
+);
+
+const books = allBooks.slice(0, 4);
+const albums = allAlbums.slice(0, 4);
+const episodes = allEpisodes.slice(0, 3);
+const latestRace = allRaces[0];
+
+const stats = [
+	{ n: allBooks.length, l: 'Books' },
+	{ n: allRaces.length, l: 'Races' },
+	{ n: allEpisodes.length, l: 'Episodes' },
+];
+
+const navLinks = [
+	{ href: '#about', label: 'About' },
+	{ href: '#travel', label: 'Travel' },
+	{ href: '#reading', label: 'Reading' },
+	{ href: '#podcast', label: 'Podcast' },
+	{ href: '#running', label: 'Running' },
+	{ href: '#contact', label: 'Contact' },
+];
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<BaseHead title={`${SITE_TITLE} — Still filming the only movie I get to make.`} description="Reading, travel, a podcast, and the long road to the marathon." />
+		<style>
+			:root {
+				--mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+			}
+			main {
+				width: 100%;
+				max-width: 100%;
+				margin: 0;
+				padding: 0;
+			}
+			.eyebrow {
+				font-family: var(--mono);
+				text-transform: uppercase;
+				letter-spacing: 0.22em;
+				font-size: 0.74rem;
+				color: var(--accent);
+				margin: 0 0 1rem;
+			}
+
+			/* ---------- NAV ---------- */
+			.nav {
+				position: fixed;
+				inset: 0 0 auto 0;
+				z-index: 40;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 1rem clamp(1.25rem, 5vw, 4rem);
+				transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+				color: #fff;
+			}
+			.nav.solid {
+				background: rgba(250, 246, 239, 0.9);
+				backdrop-filter: blur(10px);
+				box-shadow: 0 1px 0 rgb(var(--gray-light));
+				color: rgb(var(--black));
+			}
+			.nav .brand {
+				font-family: var(--font-fraunces);
+				font-weight: 600;
+				font-size: 1.15rem;
+				text-decoration: none;
+				color: inherit;
+				letter-spacing: -0.01em;
+			}
+			.nav .links {
+				display: flex;
+				gap: 1.6rem;
+			}
+			.nav .links a {
+				text-decoration: none;
+				color: inherit;
+				font-size: 0.9rem;
+				opacity: 0.9;
+				transition: opacity 0.2s ease, color 0.2s ease;
+			}
+			.nav .links a:hover {
+				opacity: 1;
+				color: var(--accent);
+			}
+			.menu-toggle {
+				display: none;
+				background: none;
+				border: none;
+				color: inherit;
+				font-size: 1.5rem;
+				line-height: 1;
+				cursor: pointer;
+				padding: 0.2rem 0.4rem;
+			}
+
+			/* mobile overlay menu */
+			.mobile-menu {
+				position: fixed;
+				inset: 0;
+				z-index: 50;
+				background: rgb(var(--black));
+				color: var(--bg);
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 1.5rem;
+				opacity: 0;
+				pointer-events: none;
+				transition: opacity 0.3s ease;
+			}
+			.mobile-menu.open {
+				opacity: 1;
+				pointer-events: auto;
+			}
+			.mobile-menu a {
+				font-family: var(--font-fraunces);
+				font-size: 1.8rem;
+				color: var(--bg);
+				text-decoration: none;
+			}
+			.mobile-menu .close {
+				position: absolute;
+				top: 1.1rem;
+				right: 1.4rem;
+				background: none;
+				border: none;
+				color: var(--bg);
+				font-size: 2rem;
+				cursor: pointer;
+			}
+
+			/* ---------- HERO ---------- */
+			.hero {
+				position: relative;
+				min-height: 100svh;
+				display: flex;
+				align-items: flex-end;
+				padding: clamp(1.25rem, 5vw, 4rem);
+				padding-bottom: clamp(3rem, 8vh, 6rem);
+				color: #fff;
+				overflow: hidden;
+			}
+			.hero-bg {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				border-radius: 0;
+				z-index: 0;
+			}
+			.hero-scrim {
+				position: absolute;
+				inset: 0;
+				z-index: 1;
+				background: linear-gradient(
+					to bottom,
+					rgba(30, 20, 12, 0.35) 0%,
+					rgba(30, 20, 12, 0.05) 35%,
+					rgba(30, 20, 12, 0.6) 100%
+				);
+			}
+			.hero-inner {
+				position: relative;
+				z-index: 2;
+				max-width: 1180px;
+				margin: 0 auto;
+				width: 100%;
+			}
+			.hero .kicker {
+				font-family: var(--mono);
+				text-transform: uppercase;
+				letter-spacing: 0.28em;
+				font-size: 0.78rem;
+				opacity: 0.9;
+				margin: 0 0 1rem;
+			}
+			.hero h1 {
+				font-family: var(--font-fraunces);
+				font-weight: 400;
+				font-size: clamp(3.2rem, 12vw, 8.5rem);
+				line-height: 0.95;
+				letter-spacing: -0.02em;
+				margin: 0;
+				color: #fff;
+				text-wrap: balance;
+			}
+			.hero .tagline {
+				font-size: clamp(1.05rem, 2.5vw, 1.5rem);
+				max-width: none;
+				white-space: nowrap;
+				margin: 1.2rem 0 0;
+				opacity: 0.95;
+			}
+			.scrollcue {
+				position: absolute;
+				left: 50%;
+				bottom: 1.5rem;
+				z-index: 2;
+				transform: translateX(-50%);
+				font-family: var(--mono);
+				font-size: 0.66rem;
+				letter-spacing: 0.2em;
+				text-transform: uppercase;
+				opacity: 0.85;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.4rem;
+			}
+			.scrollcue::after {
+				content: '';
+				width: 1px;
+				height: 34px;
+				background: #fff;
+				animation: cue 1.8s ease-in-out infinite;
+				transform-origin: top;
+			}
+			@keyframes cue {
+				0%,
+				100% {
+					transform: scaleY(0.4);
+					opacity: 0.4;
+				}
+				50% {
+					transform: scaleY(1);
+					opacity: 1;
+				}
+			}
+
+			/* ---------- SECTION SHELL ---------- */
+			section.block {
+				max-width: 1180px;
+				margin: 0 auto;
+				padding: clamp(4rem, 12vh, 9rem) clamp(1.25rem, 5vw, 4rem);
+			}
+			.section-title {
+				font-family: var(--font-fraunces);
+				font-weight: 600;
+				font-size: clamp(2rem, 5vw, 3.4rem);
+				line-height: 1.05;
+				letter-spacing: -0.015em;
+				margin: 0 0 2rem;
+				color: rgb(var(--black));
+				text-wrap: balance;
+			}
+			.viewall {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.45rem;
+				margin-top: 1.6rem;
+				font-family: var(--mono);
+				text-transform: uppercase;
+				letter-spacing: 0.12em;
+				font-size: 0.8rem;
+				color: var(--accent);
+				text-decoration: none;
+				border-bottom: 1px solid transparent;
+				padding-bottom: 2px;
+				transition: gap 0.2s ease, border-color 0.2s ease;
+			}
+			.viewall:hover {
+				gap: 0.8rem;
+				border-bottom-color: var(--accent);
+			}
+
+			/* reveal on scroll */
+			.reveal {
+				opacity: 0;
+				transform: translateY(28px);
+				transition: opacity 0.7s ease, transform 0.7s ease;
+			}
+			.reveal.in {
+				opacity: 1;
+				transform: none;
+			}
+			@media (prefers-reduced-motion: reduce) {
+				.reveal {
+					opacity: 1;
+					transform: none;
+					transition: none;
+				}
+				.scrollcue::after {
+					animation: none;
+				}
+			}
+
+			/* ---------- ABOUT ---------- */
+			.about {
+				display: grid;
+				grid-template-columns: 1.3fr 1fr;
+				gap: clamp(2rem, 5vw, 4rem);
+				align-items: center;
+			}
+			.about .lead {
+				font-family: var(--font-fraunces);
+				font-weight: 400;
+				font-size: clamp(1.4rem, 3vw, 2.1rem);
+				line-height: 1.35;
+				color: rgb(var(--black));
+				margin: 0 0 1.5rem;
+			}
+			.about p {
+				color: rgb(var(--gray));
+				margin: 0 0 1rem;
+			}
+			.about .portrait {
+				border-radius: 16px;
+				overflow: hidden;
+				box-shadow: 0 30px 60px rgba(120, 90, 60, 0.18);
+			}
+			.about .portrait img {
+				width: 100%;
+				aspect-ratio: 4 / 5;
+				object-fit: cover;
+				border-radius: 16px;
+				display: block;
+			}
+			.stats {
+				display: flex;
+				gap: clamp(1.5rem, 4vw, 3rem);
+				margin-top: 2rem;
+				flex-wrap: wrap;
+			}
+			.stats .n {
+				font-family: var(--font-fraunces);
+				font-size: 2.4rem;
+				font-weight: 600;
+				color: var(--accent);
+				line-height: 1;
+			}
+			.stats .l {
+				font-size: 0.85rem;
+				color: rgb(var(--gray));
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+			}
+
+			/* ---------- TRAVEL (full-bleed gallery) ---------- */
+			.travel-head {
+				max-width: 1180px;
+				margin: 0 auto;
+				padding: clamp(4rem, 12vh, 9rem) clamp(1.25rem, 5vw, 4rem) 2rem;
+			}
+			.gallery {
+				display: grid;
+				grid-template-columns: repeat(4, 1fr);
+				gap: 6px;
+			}
+			.gallery a {
+				display: block;
+				overflow: hidden;
+			}
+			.gallery img {
+				width: 100%;
+				aspect-ratio: 3 / 4;
+				object-fit: cover;
+				border-radius: 0;
+				display: block;
+				transition: transform 0.5s ease;
+			}
+			.gallery a:hover img {
+				transform: scale(1.04);
+			}
+			.travel-foot {
+				max-width: 1180px;
+				margin: 0 auto;
+				padding: 1.5rem clamp(1.25rem, 5vw, 4rem) 0;
+			}
+
+			/* ---------- READING ---------- */
+			.book-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+				gap: 2rem;
+			}
+			.book a {
+				display: block;
+				text-decoration: none;
+				color: rgb(var(--black));
+			}
+			.book img {
+				width: 100%;
+				aspect-ratio: 2 / 3;
+				object-fit: cover;
+				border-radius: 10px;
+				box-shadow: 0 18px 36px rgba(120, 90, 60, 0.16);
+				transition: transform 0.3s ease;
+			}
+			.book a:hover img {
+				transform: translateY(-6px);
+			}
+			.book h3 {
+				font-family: var(--font-fraunces);
+				font-size: 1.15rem;
+				margin: 0.9rem 0 0.15rem;
+			}
+			.book .by {
+				color: rgb(var(--gray));
+				font-size: 0.9rem;
+				margin: 0;
+			}
+			.book .stars {
+				color: var(--accent);
+			}
+
+			/* ---------- PODCAST + RUNNING ---------- */
+			.split2 {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: clamp(2rem, 6vw, 5rem);
+			}
+			.ep {
+				display: flex;
+				gap: 1rem;
+				align-items: center;
+				padding: 1.1rem 0;
+				border-top: 1px solid rgb(var(--gray-light));
+				text-decoration: none;
+				color: rgb(var(--black));
+			}
+			.ep .play {
+				width: 44px;
+				height: 44px;
+				border-radius: 50%;
+				background: var(--accent);
+				color: #fff;
+				display: grid;
+				place-items: center;
+				flex-shrink: 0;
+			}
+			.ep h4 {
+				font-family: var(--font-fraunces);
+				font-size: 1.05rem;
+				margin: 0 0 0.15rem;
+			}
+			.ep small {
+				color: rgb(var(--gray));
+			}
+			.ep:hover h4 {
+				color: var(--accent);
+			}
+			.race {
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				border-radius: 16px;
+				padding: 1.8rem;
+			}
+			.race .big {
+				font-family: var(--font-fraunces);
+				font-size: 3.2rem;
+				font-weight: 600;
+				color: var(--accent);
+				line-height: 1;
+				margin: 0.5rem 0;
+			}
+			.race .rrow {
+				display: flex;
+				justify-content: space-between;
+				padding: 0.6rem 0;
+				border-top: 1px solid rgb(var(--gray-light));
+				font-variant-numeric: tabular-nums;
+			}
+			.race .rrow span:first-child {
+				color: rgb(var(--gray));
+			}
+
+			/* ---------- CONTACT ---------- */
+			.contact {
+				background: rgb(var(--black));
+				color: var(--bg);
+				text-align: center;
+			}
+			.contact-inner {
+				max-width: 720px;
+				margin: 0 auto;
+				padding: clamp(4rem, 14vh, 9rem) clamp(1.25rem, 5vw, 4rem);
+			}
+			.contact h2 {
+				font-family: var(--font-fraunces);
+				font-weight: 400;
+				font-size: clamp(2.4rem, 7vw, 5rem);
+				margin: 0.5rem 0 1.5rem;
+				line-height: 1;
+				color: var(--bg);
+			}
+			.contact a.mail {
+				font-family: var(--font-fraunces);
+				font-size: clamp(1.2rem, 3vw, 1.8rem);
+				color: #fff;
+				text-decoration: none;
+				border-bottom: 2px solid var(--accent);
+				padding-bottom: 0.15em;
+			}
+			.contact .socials {
+				display: flex;
+				gap: 1.5rem;
+				justify-content: center;
+				margin-top: 2.5rem;
+				color: rgba(255, 255, 255, 0.7);
+				font-size: 0.9rem;
+			}
+			.contact .socials a {
+				color: inherit;
+				text-decoration: none;
+			}
+			.contact .socials a:hover {
+				color: #fff;
+			}
+
+			.mini-foot {
+				background: var(--surface);
+				border-top: 1px solid rgb(var(--gray-light));
+				color: rgb(var(--gray));
+				font-size: 0.85rem;
+				text-align: center;
+				padding: 1.5rem 1rem;
+			}
+
+			@media (max-width: 820px) {
+				.about {
+					grid-template-columns: 1fr;
+				}
+				.about .portrait {
+					order: -1;
+				}
+				.split2 {
+					grid-template-columns: 1fr;
+				}
+			}
+			@media (max-width: 720px) {
+				.nav .links {
+					display: none;
+				}
+				.menu-toggle {
+					display: block;
+				}
+				.hero .tagline {
+					white-space: normal;
+				}
+				.gallery {
+					grid-template-columns: repeat(2, 1fr);
+				}
+			}
+		</style>
 	</head>
 	<body>
-		<Header />
+		<nav class="nav" id="nav">
+			<a href="#top" class="brand">{SITE_TITLE}</a>
+			<div class="links">
+				{navLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+			</div>
+			<button class="menu-toggle" id="menuOpen" aria-label="Open menu">☰</button>
+		</nav>
+
+		<div class="mobile-menu" id="mobileMenu">
+			<button class="close" id="menuClose" aria-label="Close menu">×</button>
+			{navLinks.map((l) => <a href={l.href} data-close>{l.label}</a>)}
+		</div>
+
 		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This template
-				serves as a lightweight, minimally-styled starting point for anyone looking to build a personal
-				website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to
-				<a href="https://docs.astro.build/">read the docs</a>
-				or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a>
-				by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
+			<header class="hero" id="top">
+				<Image class="hero-bg" src={heroImg} alt="" fetchpriority="high" />
+				<div class="hero-scrim"></div>
+				<div class="hero-inner">
+					<p class="kicker">Reader · Runner · Traveler</p>
+					<h1>Peter Tsai</h1>
+					<p class="tagline">Still filming the only movie I get to make.</p>
+				</div>
+				<div class="scrollcue">Scroll</div>
+			</header>
+
+			<section class="block about" id="about">
+				<div class="reveal">
+					<p class="eyebrow">About</p>
+					<p class="lead">
+						I'm Peter — a runner, reader, and traveler based in Taipei, keeping the four things I
+						care about most in one place.
+					</p>
+					<p>
+						This is my corner of the web: what I'm reading and the notes I take, the places I travel
+						to and the photos I bring home, a podcast where I think out loud, and every race on the
+						way to a faster marathon.
+					</p>
+					<div class="stats">
+						{stats.map((s) => (
+							<div>
+								<div class="n">{s.n}</div>
+								<div class="l">{s.l}</div>
+							</div>
+						))}
+					</div>
+				</div>
+				<div class="portrait reveal">
+					<Image src={portraitImg} alt="Portrait of Peter" width={640} height={800} />
+				</div>
+			</section>
+
+			{albums.length > 0 && (
+				<>
+					<div class="travel-head reveal" id="travel">
+						<p class="eyebrow">Travel</p>
+						<h2 class="section-title">Notes from the road.</h2>
+					</div>
+					<div class="gallery reveal">
+						{albums.map((album) => (
+							<a href={`/travel/${album.id}/`}>
+								<Image src={album.data.coverImage} alt={album.data.title} width={480} height={640} />
+							</a>
+						))}
+					</div>
+					<div class="travel-foot reveal">
+						<a class="viewall" href="/travel">All travel stories →</a>
+					</div>
+				</>
+			)}
+
+			{books.length > 0 && (
+				<section class="block" id="reading">
+					<div class="reveal">
+						<p class="eyebrow">Reading</p>
+						<h2 class="section-title">Books worth the time.</h2>
+					</div>
+					<div class="book-grid reveal">
+						{books.map((book) => (
+							<div class="book">
+								<a href={`/books/${book.id}/`}>
+									{book.data.coverImage && (
+										<Image src={book.data.coverImage} alt={book.data.title} width={300} height={450} />
+									)}
+									<h3>{book.data.title}</h3>
+									<p class="by">
+										{book.data.author}
+										{book.data.rating && <span class="stars"> · {'★'.repeat(book.data.rating)}</span>}
+									</p>
+								</a>
+							</div>
+						))}
+					</div>
+					<a class="viewall reveal" href="/books">All reading notes →</a>
+				</section>
+			)}
+
+			<section class="block split2">
+				{episodes.length > 0 && (
+					<div class="reveal" id="podcast">
+						<p class="eyebrow">Podcast</p>
+						<h2 class="section-title">Thinking out loud.</h2>
+						{episodes.map((ep) => (
+							<a class="ep" href={`/podcast/${ep.id}/`}>
+								<div class="play">▶</div>
+								<div>
+									<h4>{ep.data.episode ? `EP ${ep.data.episode} · ` : ''}{ep.data.title}</h4>
+									<small>{ep.data.duration ? `${ep.data.duration} · ` : ''}{ep.data.pubDate.getFullYear()}</small>
+								</div>
+							</a>
+						))}
+						<a class="viewall" href="/podcast">All episodes →</a>
+					</div>
+				)}
+
+				{latestRace && (
+					<div class="reveal" id="running">
+						<p class="eyebrow">Running</p>
+						<h2 class="section-title">Latest race.</h2>
+						<div class="race">
+							<div class="eyebrow" style="margin-bottom: 0">{latestRace.data.title}</div>
+							<div class="big">{latestRace.data.finishTime}</div>
+							<div class="rrow"><span>Distance</span><span>{latestRace.data.distance}</span></div>
+							{latestRace.data.pace && (
+								<div class="rrow"><span>Avg pace</span><span>{latestRace.data.pace}</span></div>
+							)}
+							{latestRace.data.location && (
+								<div class="rrow"><span>Where</span><span>{latestRace.data.location}</span></div>
+							)}
+						</div>
+						<a class="viewall" href="/races">Full running log →</a>
+					</div>
+				)}
+			</section>
+
+			<section class="contact" id="contact">
+				<div class="contact-inner reveal">
+					<p class="eyebrow" style="color: var(--accent)">Contact</p>
+					<h2>Say hello.</h2>
+					<a class="mail" href="mailto:hello@example.com">hello@example.com</a>
+					<div class="socials">
+						<a href="https://github.com/peteryoyoman" target="_blank">GitHub</a>
+						<a href="/rss.xml">RSS</a>
+					</div>
+				</div>
+			</section>
 		</main>
-		<Footer />
+
+		<footer class="mini-foot">© {new Date().getFullYear()} Peter Tsai</footer>
+
+		<script>
+			// nav solidify after hero
+			const nav = document.getElementById('nav');
+			const onScroll = () => {
+				if (window.scrollY > window.innerHeight * 0.7) nav?.classList.add('solid');
+				else nav?.classList.remove('solid');
+			};
+			window.addEventListener('scroll', onScroll, { passive: true });
+			onScroll();
+
+			// mobile menu
+			const menu = document.getElementById('mobileMenu');
+			document.getElementById('menuOpen')?.addEventListener('click', () => menu?.classList.add('open'));
+			document.getElementById('menuClose')?.addEventListener('click', () => menu?.classList.remove('open'));
+			menu?.querySelectorAll('[data-close]').forEach((a) =>
+				a.addEventListener('click', () => menu.classList.remove('open')),
+			);
+
+			// scroll reveal
+			const io = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((e) => {
+						if (e.isIntersecting) {
+							e.target.classList.add('in');
+							io.unobserve(e.target);
+						}
+					});
+				},
+				{ threshold: 0.15 },
+			);
+			document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+		</script>
 	</body>
 </html>

@@ -6,30 +6,24 @@ import { defineConfig, fontProviders } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://example.com',
+	site: 'https://peteryoyoman.github.io',
 	integrations: [mdx(), sitemap()],
 	fonts: [
 		{
-			provider: fontProviders.local(),
-			name: 'Atkinson',
-			cssVariable: '--font-atkinson',
-			fallbacks: ['sans-serif'],
-			options: {
-				variants: [
-					{
-						src: ['./src/assets/fonts/atkinson-regular.woff'],
-						weight: 400,
-						style: 'normal',
-						display: 'swap',
-					},
-					{
-						src: ['./src/assets/fonts/atkinson-bold.woff'],
-						weight: 700,
-						style: 'normal',
-						display: 'swap',
-					},
-				],
-			},
+			// 標題：Fraunces（有個性的柔和襯線）
+			provider: fontProviders.google(),
+			name: 'Fraunces',
+			cssVariable: '--font-fraunces',
+			weights: [400, 600, 700],
+			fallbacks: ['Georgia', 'serif'],
+		},
+		{
+			// 內文：Nunito Sans（溫暖圓潤的無襯線）
+			provider: fontProviders.google(),
+			name: 'Nunito Sans',
+			cssVariable: '--font-nunito',
+			weights: [400, 600, 700],
+			fallbacks: ['system-ui', 'sans-serif'],
 		},
 	],
 });
