@@ -352,40 +352,43 @@ const navLinks = [
 				padding: 1.5rem clamp(1.25rem, 5vw, 4rem) 0;
 			}
 
-			/* ---------- READING ---------- */
-			.book-grid {
+			/* ---------- READING (note cards) ---------- */
+			.note-cards {
 				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-				gap: 2rem;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 1.25rem;
 			}
-			.book a {
+			.note-card {
 				display: block;
 				text-decoration: none;
 				color: rgb(var(--black));
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				border-radius: 12px;
+				padding: 1.4rem 1.5rem;
+				transition: transform 0.2s ease, box-shadow 0.2s ease;
 			}
-			.book img {
-				width: 100%;
-				aspect-ratio: 2 / 3;
-				object-fit: cover;
-				border-radius: 10px;
-				box-shadow: 0 18px 36px rgba(120, 90, 60, 0.16);
-				transition: transform 0.3s ease;
+			.note-card:hover {
+				transform: translateY(-3px);
+				box-shadow: var(--box-shadow);
 			}
-			.book a:hover img {
-				transform: translateY(-6px);
-			}
-			.book h3 {
+			.note-card .bk-title {
 				font-family: var(--font-fraunces);
-				font-size: 1.15rem;
-				margin: 0.9rem 0 0.15rem;
+				font-size: 1.3rem;
+				line-height: 1.2;
+				margin: 0 0 0.1rem;
 			}
-			.book .by {
-				color: rgb(var(--gray));
-				font-size: 0.9rem;
-				margin: 0;
-			}
-			.book .stars {
+			.note-card:hover .bk-title {
 				color: var(--accent);
+			}
+			.note-card .bk-author {
+				color: rgb(var(--gray));
+				font-size: 0.85rem;
+			}
+			.note-card .bk-note {
+				color: rgb(var(--gray-dark));
+				font-size: 0.95rem;
+				margin: 0.7rem 0 0;
 			}
 
 			/* ---------- BLOG (three cards) ---------- */
@@ -570,9 +573,8 @@ const navLinks = [
 				.gallery {
 					grid-template-columns: repeat(2, 1fr);
 				}
-				.book-grid {
-					grid-template-columns: repeat(2, 1fr);
-					gap: 1rem;
+				.note-cards {
+					grid-template-columns: 1fr;
 				}
 				.post-grid {
 					grid-template-columns: 1fr;
@@ -656,20 +658,13 @@ const navLinks = [
 						<p class="eyebrow">Reading</p>
 						<h2 class="section-title">Books worth the time.</h2>
 					</div>
-					<div class="book-grid reveal">
+					<div class="note-cards reveal">
 						{books.map((book) => (
-							<div class="book">
-								<a href={`/books/${book.id}/`}>
-									{book.data.coverImage && (
-										<Image src={book.data.coverImage} alt={book.data.title} width={300} height={450} />
-									)}
-									<h3>{book.data.title}</h3>
-									<p class="by">
-										{book.data.author}
-										{book.data.rating && <span class="stars"> · {'★'.repeat(book.data.rating)}</span>}
-									</p>
-								</a>
-							</div>
+							<a class="note-card" href={`/books/${book.id}/`}>
+								<h3 class="bk-title">{book.data.title}</h3>
+								<span class="bk-author">{book.data.author}</span>
+								<p class="bk-note">{book.data.description}</p>
+							</a>
 						))}
 					</div>
 					<a class="viewall reveal" href="/books">All reading notes →</a>
