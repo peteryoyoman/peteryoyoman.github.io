@@ -1,0 +1,142 @@
+---
+interface Props {
+	eyebrow: string;
+	title: string;
+	intro?: string;
+	count?: string;
+}
+const { eyebrow, title, intro, count } = Astro.props;
+---
+
+<div class="archive-head">
+	<p class="archive-eyebrow">{eyebrow}</p>
+	<h1 class="archive-title">{title}</h1>
+	{intro && <p class="archive-intro">{intro}</p>}
+	{count && <p class="archive-count">{count}</p>}
+</div>
+<div class="archive-rows">
+	<slot />
+</div>
+
+<style is:global>
+	.archive-head {
+		margin-bottom: 2.6rem;
+	}
+	.archive-eyebrow {
+		font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+		text-transform: uppercase;
+		letter-spacing: 0.18em;
+		font-size: 0.72rem;
+		color: var(--accent);
+		margin: 0 0 0.5rem;
+	}
+	.archive-title {
+		font-family: var(--font-fraunces);
+		font-weight: 600;
+		font-size: clamp(2rem, 5vw, 3rem);
+		line-height: 1.03;
+		letter-spacing: -0.015em;
+		color: rgb(var(--black));
+		margin: 0 0 0.6rem;
+	}
+	.archive-intro {
+		color: rgb(var(--gray));
+		max-width: 52ch;
+		font-size: 1.05rem;
+		margin: 0 0 0.5rem;
+	}
+	.archive-count {
+		font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		font-size: 0.72rem;
+		color: rgb(var(--gray));
+		margin: 0;
+	}
+
+	.archive-rows {
+		display: flex;
+		flex-direction: column;
+	}
+	.arow {
+		display: flex;
+		align-items: center;
+		gap: 1.2rem;
+		padding: 1.3rem 0;
+		border-top: 1px solid rgb(var(--gray-light));
+		text-decoration: none;
+		color: rgb(var(--black));
+	}
+	.arow:first-child {
+		border-top: none;
+	}
+	.arow:hover .arow-title {
+		color: var(--accent);
+	}
+	.arow-thumb {
+		width: 68px;
+		height: 68px;
+		object-fit: cover;
+		border-radius: 10px;
+		flex-shrink: 0;
+	}
+	.arow-body {
+		flex: 1;
+		min-width: 0;
+	}
+	.arow-title {
+		font-family: var(--font-fraunces);
+		font-size: 1.3rem;
+		line-height: 1.2;
+		margin: 0 0 0.2rem;
+	}
+	.arow-sub {
+		color: rgb(var(--gray));
+		font-size: 0.9rem;
+		margin: 0;
+	}
+	.arow-desc {
+		color: rgb(var(--gray));
+		font-size: 0.95rem;
+		margin: 0.2rem 0 0;
+	}
+	.arow-meta {
+		flex-shrink: 0;
+		font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: rgb(var(--gray));
+		text-align: right;
+		white-space: nowrap;
+	}
+	.arow-stat {
+		flex-shrink: 0;
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+	.arow-stat .t {
+		font-weight: 700;
+		color: var(--accent);
+		font-size: 1.1rem;
+	}
+	.arow-stat .d {
+		display: block;
+		font-size: 0.8rem;
+		color: rgb(var(--gray));
+	}
+
+	@media (max-width: 600px) {
+		.arow {
+			flex-wrap: wrap;
+			gap: 0.5rem 1rem;
+		}
+		.arow-body {
+			flex: 1 1 60%;
+		}
+		.arow-meta,
+		.arow-stat {
+			text-align: left;
+		}
+	}
+</style>

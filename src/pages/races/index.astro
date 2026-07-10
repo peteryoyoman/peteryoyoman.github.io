@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import ArchiveList from '../../components/ArchiveList.astro';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
@@ -16,44 +17,40 @@ const races = (await getCollection('races')).sort(
 	<head>
 		<BaseHead title={`Running | ${SITE_TITLE}`} description="My road-race and marathon logs." />
 		<style>
-			main { width: 800px; max-width: calc(100% - 2em); margin: auto; }
-			table { width: 100%; border-collapse: collapse; }
-			th, td { text-align: left; padding: 0.75em 0.5em; border-bottom: 1px solid rgb(var(--gray-light)); }
-			th { color: rgb(var(--gray)); font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.05em; }
-			td a { color: inherit; text-decoration: none; font-weight: 600; }
-			td a:hover { color: rgb(var(--accent)); }
-			.num { font-variant-numeric: tabular-nums; }
-			@media (max-width: 640px) {
-				th:nth-child(4), td:nth-child(4) { display: none; }
+			main {
+				width: 860px;
+				max-width: calc(100% - 2em);
+				margin: auto;
 			}
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<h1>Running Log</h1>
-			<table>
-				<thead>
-					<tr>
-						<th>Race</th>
-						<th>Distance</th>
-						<th class="num">Finish</th>
-						<th>Date</th>
-					</tr>
-				</thead>
-				<tbody>
-					{
-						races.map((race) => (
-							<tr>
-								<td><a href={`/races/${race.id}/`}>{race.data.title}</a></td>
-								<td>{race.data.distance}</td>
-								<td class="num">{race.data.finishTime}</td>
-								<td><FormattedDate date={race.data.raceDate} /></td>
-							</tr>
-						))
-					}
-				</tbody>
-			</table>
+			<ArchiveList
+				eyebrow="Running"
+				title="The long road."
+				intro="Every race on the way to a faster marathon."
+				count={`${races.length} ${races.length === 1 ? 'race' : 'races'}`}
+			>
+				{
+					races.map((race) => (
+						<a class="arow" href={`/races/${race.id}/`}>
+							<div class="arow-body">
+								<h3 class="arow-title">{race.data.title}</h3>
+								<p class="arow-sub">
+									<FormattedDate date={race.data.raceDate} />
+									{race.data.location ? ` · ${race.data.location}` : ''}
+								</p>
+							</div>
+							<span class="arow-stat">
+								<span class="t">{race.data.finishTime}</span>
+								<span class="d">{race.data.distance}</span>
+							</span>
+						</a>
+					))
+				}
+			</ArchiveList>
 		</main>
 		<Footer />
 	</body>

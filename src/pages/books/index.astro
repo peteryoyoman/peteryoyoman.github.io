@@ -1,13 +1,13 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
+import ArchiveList from '../../components/ArchiveList.astro';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_TITLE } from '../../consts';
 
-const books = (await getCollection('books')).sort(
+const bks = (await getCollection('books')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
@@ -17,50 +17,37 @@ const books = (await getCollection('books')).sort(
 	<head>
 		<BaseHead title={`Books | ${SITE_TITLE}`} description="Books I've read and my notes." />
 		<style>
-			main { width: 960px; max-width: calc(100% - 2em); margin: auto; }
-			.grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-				gap: 2rem;
+			main {
+				width: 860px;
+				max-width: calc(100% - 2em);
+				margin: auto;
 			}
-			.card a { text-decoration: none; color: inherit; display: block; }
-			.card img {
-				width: 100%;
-				aspect-ratio: 2 / 3;
-				object-fit: cover;
-				border-radius: 8px;
-				box-shadow: var(--box-shadow);
-				transition: 0.2s ease;
-			}
-			.card a:hover img { transform: translateY(-4px); }
-			.card h3 { margin: 0.6em 0 0.1em; line-height: 1.2; }
-			.card .author, .card .date { margin: 0; color: rgb(var(--gray)); font-size: 0.9em; }
-			.rating { color: #e2b23a; }
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<h1>Reading Notes</h1>
-			<div class="grid">
+			<ArchiveList
+				eyebrow="Reading"
+				title="Books worth the time."
+				intro="What I'm reading, and the notes I take along the way."
+				count={`${bks.length} ${bks.length === 1 ? 'book' : 'books'}`}
+			>
 				{
-					books.map((book) => (
-						<div class="card">
-							<a href={`/books/${book.id}/`}>
-								{book.data.coverImage && (
-									<Image width={300} height={450} src={book.data.coverImage} alt={book.data.title} />
-								)}
-								<h3>{book.data.title}</h3>
-								<p class="author">{book.data.author}</p>
-								{book.data.rating && (
-									<p class="rating">{'★'.repeat(book.data.rating)}{'☆'.repeat(5 - book.data.rating)}</p>
-								)}
-								<p class="date"><FormattedDate date={book.data.pubDate} /></p>
-							</a>
-						</div>
+					bks.map((book) => (
+						<a class="arow" href={`/books/${book.id}/`}>
+							<div class="arow-body">
+								<h3 class="arow-title">{book.data.title}</h3>
+								<p class="arow-sub">{book.data.author}</p>
+								<p class="arow-desc">{book.data.description}</p>
+							</div>
+							<span class="arow-meta">
+								<FormattedDate date={book.data.pubDate} />
+							</span>
+						</a>
 					))
 				}
-			</div>
+			</ArchiveList>
 		</main>
 		<Footer />
 	</body>

@@ -1,13 +1,14 @@
 ---
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
+import ArchiveList from '../../components/ArchiveList.astro';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_TITLE } from '../../consts';
 
-const episodes = (await getCollection('podcast')).sort(
+const eps = (await getCollection('podcast')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
@@ -17,45 +18,43 @@ const episodes = (await getCollection('podcast')).sort(
 	<head>
 		<BaseHead title={`Podcast | ${SITE_TITLE}`} description="Episodes from my podcast." />
 		<style>
-			main { width: 720px; max-width: calc(100% - 2em); margin: auto; }
-			ul { list-style: none; padding: 0; }
-			.episode {
-				display: flex;
-				gap: 1em;
-				align-items: center;
-				padding: 1em 0;
-				border-bottom: 1px solid rgb(var(--gray-light));
+			main {
+				width: 860px;
+				max-width: calc(100% - 2em);
+				margin: auto;
 			}
-			.episode a { text-decoration: none; color: inherit; display: flex; gap: 1em; align-items: center; width: 100%; }
-			.episode img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
-			.episode h3 { margin: 0 0 0.2em; }
-			.episode .meta { margin: 0; color: rgb(var(--gray)); font-size: 0.9em; }
-			.episode:hover h3 { color: rgb(var(--accent)); }
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<h1>Podcast</h1>
-			<ul>
+			<ArchiveList
+				eyebrow="Podcast"
+				title="Thinking out loud."
+				intro="Essays for the ears — reading, running, and finishing what I start."
+				count={`${eps.length} ${eps.length === 1 ? 'episode' : 'episodes'}`}
+			>
 				{
-					episodes.map((ep) => (
-						<li class="episode">
-							<a href={`/podcast/${ep.id}/`}>
-								{ep.data.coverImage && (
-									<Image width={80} height={80} src={ep.data.coverImage} alt={ep.data.title} />
-								)}
-								<div>
-									<h3>{ep.data.episode ? `EP ${ep.data.episode} · ` : ''}{ep.data.title}</h3>
-									<p class="meta">
-										<FormattedDate date={ep.data.pubDate} />{ep.data.duration && ` · ${ep.data.duration}`}
-									</p>
-								</div>
-							</a>
-						</li>
+					eps.map((ep) => (
+						<a class="arow" href={`/podcast/${ep.id}/`}>
+							{ep.data.coverImage && (
+								<Image class="arow-thumb" src={ep.data.coverImage} alt={ep.data.title} width={140} />
+							)}
+							<div class="arow-body">
+								<h3 class="arow-title">
+									{ep.data.episode ? `EP ${ep.data.episode} · ` : ''}
+									{ep.data.title}
+								</h3>
+								<p class="arow-desc">{ep.data.description}</p>
+							</div>
+							<span class="arow-meta">
+								<FormattedDate date={ep.data.pubDate} />
+								{ep.data.duration ? ` · ${ep.data.duration}` : ''}
+							</span>
+						</a>
 					))
 				}
-			</ul>
+			</ArchiveList>
 		</main>
 		<Footer />
 	</body>
