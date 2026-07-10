@@ -1,64 +1,168 @@
 ---
 import { SITE_TITLE } from '../consts';
-import HeaderLink from './HeaderLink.astro';
+
+interface Props {
+	/** Homepage: transparent over the hero, turns solid on scroll. */
+	overHero?: boolean;
+}
+const { overHero = false } = Astro.props;
+
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const links = [
+	{ href: '/', label: 'Home' },
+	{ href: '/blog', label: 'Blog' },
+	{ href: '/books', label: 'Books' },
+	{ href: '/travel', label: 'Travel' },
+	{ href: '/podcast', label: 'Podcast' },
+	{ href: '/races', label: 'Running' },
+];
+const isActive = (href: string) =>
+	href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
 ---
 
-<header>
-	<nav>
-		<h2><a href="/">{SITE_TITLE}</a></h2>
-		<div class="internal-links">
-			<HeaderLink href="/">Home</HeaderLink>
-			<HeaderLink href="/blog">Blog</HeaderLink>
-			<HeaderLink href="/books">Books</HeaderLink>
-			<HeaderLink href="/travel">Travel</HeaderLink>
-			<HeaderLink href="/podcast">Podcast</HeaderLink>
-			<HeaderLink href="/races">Running</HeaderLink>
-		</div>
-	</nav>
-</header>
-<style>
-	header {
-		margin: 0;
-		padding: 0 1em;
-		background: var(--surface);
-		border-bottom: 1px solid rgb(var(--gray-light));
-		box-shadow: 0 1px 12px rgba(var(--black), 4%);
-	}
-	h2 {
-		margin: 0;
-		font-size: 1em;
-	}
+<nav class:list={['site-nav', { over: overHero }]} id="siteNav">
+	<a href="/" class="brand">{SITE_TITLE}</a>
+	<div class="links">
+		{links.map((l) => <a href={l.href} class:list={{ active: isActive(l.href) }}>{l.label}</a>)}
+	</div>
+	<button class="menu-toggle" id="menuOpen" aria-label="Open menu">☰</button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+	<button class="close" id="menuClose" aria-label="Close menu">×</button>
+	{links.map((l) => <a href={l.href} data-close>{l.label}</a>)}
+</div>
 
-	h2 a,
-	h2 a.active {
-		text-decoration: none;
-	}
-	nav {
+<style>
+	.site-nav {
+		position: sticky;
+		top: 0;
+		z-index: 40;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		flex-wrap: wrap;
+		gap: 1rem;
+		padding: 0.9rem clamp(1.25rem, 5vw, 4rem);
+		background: var(--surface);
+		border-bottom: 1px solid rgb(var(--gray-light));
+		color: rgb(var(--black));
+		transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 	}
-	nav a {
-		padding: 1em 0.5em;
-		color: var(--black);
-		border-bottom: 4px solid transparent;
+	/* Homepage variant: fixed & transparent over the hero */
+	.site-nav.over {
+		position: fixed;
+		inset: 0 0 auto 0;
+		background: transparent;
+		border-bottom-color: transparent;
+		color: #fff;
+	}
+	.site-nav.over.solid {
+		background: rgba(250, 246, 239, 0.9);
+		backdrop-filter: blur(10px);
+		border-bottom-color: rgb(var(--gray-light));
+		color: rgb(var(--black));
+		box-shadow: 0 1px 12px rgba(var(--black), 4%);
+	}
+	.brand {
+		font-family: var(--font-fraunces);
+		font-weight: 700;
+		font-size: 1.15rem;
 		text-decoration: none;
+		color: inherit;
+		letter-spacing: -0.01em;
 	}
-	.internal-links a {
+	.links {
+		display: flex;
+		gap: 1.4rem;
+	}
+	.links a {
 		font-size: 0.9rem;
-	}
-	nav a.active {
 		text-decoration: none;
+		color: inherit;
+		opacity: 0.85;
+		border-bottom: 2px solid transparent;
+		padding-bottom: 2px;
+		transition: opacity 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+	}
+	.links a:hover {
+		opacity: 1;
+		color: var(--accent);
+	}
+	.links a.active {
+		opacity: 1;
 		border-bottom-color: var(--accent);
 	}
-	.social-links,
-	.social-links a {
-		display: flex;
+	.menu-toggle {
+		display: none;
+		background: none;
+		border: none;
+		color: inherit;
+		font-size: 1.4rem;
+		line-height: 1;
+		cursor: pointer;
+		padding: 0.2rem 0.3rem;
 	}
+
+	/* mobile overlay menu */
+	.mobile-menu {
+		position: fixed;
+		inset: 0;
+		z-index: 50;
+		background: rgb(var(--black));
+		color: var(--bg);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1.4rem;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.3s ease;
+	}
+	.mobile-menu.open {
+		opacity: 1;
+		pointer-events: auto;
+	}
+	.mobile-menu a {
+		font-family: var(--font-fraunces);
+		font-size: 1.8rem;
+		color: var(--bg);
+		text-decoration: none;
+	}
+	.mobile-menu .close {
+		position: absolute;
+		top: 1rem;
+		right: 1.3rem;
+		background: none;
+		border: none;
+		color: var(--bg);
+		font-size: 2rem;
+		cursor: pointer;
+	}
+
 	@media (max-width: 720px) {
-		.social-links {
+		.links {
 			display: none;
+		}
+		.menu-toggle {
+			display: block;
 		}
 	}
 </style>
+
+<script>
+	const nav = document.getElementById('siteNav');
+	if (nav?.classList.contains('over')) {
+		const onScroll = () => {
+			if (window.scrollY > window.innerHeight * 0.7) nav.classList.add('solid');
+			else nav.classList.remove('solid');
+		};
+		window.addEventListener('scroll', onScroll, { passive: true });
+		onScroll();
+	}
+	const menu = document.getElementById('mobileMenu');
+	document.getElementById('menuOpen')?.addEventListener('click', () => menu?.classList.add('open'));
+	document.getElementById('menuClose')?.addEventListener('click', () => menu?.classList.remove('open'));
+	menu?.querySelectorAll('[data-close]').forEach((a) =>
+		a.addEventListener('click', () => menu.classList.remove('open')),
+	);
+</script>
